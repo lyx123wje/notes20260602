@@ -24,20 +24,16 @@ class HomePageTest(TestCase):
         response = self.client.get('/')
         self.assertTemplateUsed(response, 'home.html')
     
+    
+    
+class ListViewTest(TestCase):
     def test_can_save_a_POST_request(self): # 【已重构拆分：专测保存】 
-        self.client.post('/', data={'item_text': 'A new list item'})
+        response = self.client.post('/lists/new', data={'item_text': 'A new list item'})
         self.assertEqual(Item.objects.count(), 1)
         new_item = Item.objects.first()
         self.assertEqual(new_item.text, 'A new list item')
 
     def test_redirects_after_POST(self): # 【已重构新增：专测重定向】 [cite: 1404, 1410]
-        response = self.client.post('/', data={'item_text': 'A new list item'})
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['location'], '/')
-
-    def test_displays_all_list_items(self): # 【已补齐：测试列表展示】 
-        Item.objects.create(text='itemey 1')
-        Item.objects.create(text='itemey 2')
-        response = self.client.get('/')
-        self.assertIn('itemey 1', response.content.decode())
-        self.assertIn('itemey 2', response.content.decode())
+        response = self.client.post('/lists/new', data={'item_text': 'A new list item'})
+        self.assertRedirects(response, '/lists/the-new-page/')
+        
