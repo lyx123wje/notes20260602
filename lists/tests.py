@@ -1,7 +1,5 @@
 from django.test import TestCase
-
 from lists.models import Item, List
-
 
 class ItemModelTest(TestCase):
     def test_save_and_retrieve_items(self):
@@ -28,21 +26,18 @@ class ItemModelTest(TestCase):
         self.assertEqual(second_saved_item.text, second_item.text)
         self.assertEqual(second_saved_item.list, list_)
 
-
 class HomePageTest(TestCase):
     def test_uses_home_template(self):
         response = self.client.get('/')
         self.assertTemplateUsed(response, 'home.html')
-
-
     
 class ListViewTest(TestCase):
     def test_passes_correct_list_to_template(self):
         other_list = List.objects.create()
         correct_list = List.objects.create()
         response = self.client.get(f'/lists/{correct_list.id}/')
+        # 第一只虫子捉住了：把 other_list 改成了 correct_list
         self.assertEqual(response.context['list'], correct_list)
-
 
     def test_uses_list_template(self):
         list_user = List.objects.create()
@@ -64,16 +59,14 @@ class ListViewTest(TestCase):
         self.assertNotContains(response, 'other item item 1')
         self.assertNotContains(response, 'other item item 2')
 
-
-
+# 第二只虫子捉住了：给新建清单的测试，单独建了一个叫 NewListTest 的大房间
+class NewListTest(TestCase):
     def test_can_save_a_POST_request(self):
-        response=self.client.post('/lists/new', data={'item_text': 'A new list item'})
+        response = self.client.post('/lists/new', data={'item_text': 'A new list item'})
         self.assertEqual(Item.objects.count(), 1)
         new_item = Item.objects.first()
         self.assertEqual(new_item.text, 'A new list item')
         self.assertEqual(new_item.list, List.objects.first())
-
-
 
     def test_redirects_after_POST(self):
         response = self.client.post('/lists/new', data={'item_text': 'A new list item'})
@@ -94,13 +87,12 @@ class NewItemTest(TestCase):
        self.assertEqual(new_item.text, 'A new item for an existing list')
        self.assertEqual(new_item.list, correct_list)
     
-    def test_redirects_after_POST(self):
+    # 第三只虫子捉住了：改了名字，并且把跳转地址改成了正确的小盒子 ID
+    def test_redirects_to_list_view(self):
         other_list = List.objects.create()
         correct_list = List.objects.create()
-
         response = self.client.post(
             f'/lists/{correct_list.id}/add_item',
             data={'item_text': 'A new item for an existing list'}
         )
-
         self.assertRedirects(response, f'/lists/{correct_list.id}/')
